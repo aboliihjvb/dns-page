@@ -2,22 +2,26 @@
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ساخت DNS - ABOLI</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             background: radial-gradient(circle at center, #111 0%, #000 100%);
             font-family: 'Orbitron', sans-serif;
             color: #00ffcc;
-            margin: 0;
-            padding: 0;
             text-align: center;
+            padding: 20px;
+            overflow-x: hidden;
         }
         .container {
-            width: 90%;
-            max-width: 500px;
-            margin: 50px auto;
+            max-width: 400px;
+            margin: auto;
             background: rgba(10, 10, 10, 0.9);
             padding: 20px;
             border-radius: 10px;
@@ -26,6 +30,7 @@
         h2 {
             color: #00ffcc;
             text-shadow: 0 0 15px #00ffcc;
+            margin-bottom: 20px;
         }
         select, button {
             width: 100%;
@@ -33,7 +38,7 @@
             margin: 10px 0;
             border-radius: 8px;
             border: none;
-            font-size: 1.2em;
+            font-size: 1em;
             cursor: pointer;
             transition: 0.3s;
             background: linear-gradient(90deg, #00ffcc, #0055ff);
@@ -41,8 +46,8 @@
             font-weight: bold;
         }
         button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 15px #00ffcc;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #00ffcc;
         }
         .dns-output {
             display: none;
@@ -59,7 +64,7 @@
             border: none;
             padding: 12px;
             text-align: center;
-            font-size: 1.2em;
+            font-size: 1em;
             border-radius: 5px;
         }
         .copy-btn {
@@ -81,19 +86,6 @@
             border-radius: 5px;
             display: none;
             font-weight: bold;
-        }
-
-        /* بهینه‌سازی برای موبایل */
-        @media (max-width: 768px) {
-            .container {
-                width: 95%;
-                margin: 20px auto;
-                padding: 15px;
-            }
-            select, button {
-                font-size: 1em;
-                padding: 10px;
-            }
         }
     </style>
 </head>
@@ -122,10 +114,10 @@
     <div class="dns-output" id="dnsOutput">
         <h3>DNS شما:</h3>
         <input type="text" id="dns1Text" readonly />
-        <button class="copy-btn" data-dns="dns1Text">کپی DNS 1</button>
+        <button class="copy-btn" onclick="copyToClipboard('dns1Text')">کپی DNS 1</button>
         
         <input type="text" id="dns2Text" readonly />
-        <button class="copy-btn" data-dns="dns2Text">کپی DNS 2</button>
+        <button class="copy-btn" onclick="copyToClipboard('dns2Text')">کپی DNS 2</button>
     </div>
 
     <div class="notification" id="notification"></div>
@@ -140,15 +132,6 @@
         generateDNS(true);
     });
 
-    document.querySelectorAll('.copy-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const dnsField = document.getElementById(this.dataset.dns);
-            navigator.clipboard.writeText(dnsField.value)
-                .then(() => showNotification(`${this.innerText} کپی شد!`))
-                .catch(err => console.error("خطا در کپی کردن: ", err));
-        });
-    });
-
     function generateDNS(isBad) {
         const generation = document.getElementById('generation').value;
         const country = document.getElementById('country').value;
@@ -157,8 +140,8 @@
 
         if (generation === 'ipv4') {
             if (isBad) {
-                dns1 = `203.${rand(200, 255)}.${rand(50, 255)}.${rand(10, 250)}`;
-                dns2 = `198.${rand(200, 255)}.${rand(50, 255)}.${rand(10, 250)}`;
+                dns1 = `203.0.${rand(200, 255)}.${rand(200, 255)}`;
+                dns2 = `198.51.${rand(200, 255)}.${rand(200, 255)}`;
             } else {
                 switch (country) {
                     case "iran":
@@ -166,22 +149,22 @@
                         dns2 = `185.51.200.${rand(1, 255)}`;
                         break;
                     case "germany":
-                        dns1 = `8.8.8.8`;
-                        dns2 = `9.9.9.9`;
+                        dns1 = `8.8.8.8`;  
+                        dns2 = `9.9.9.9`;  
                         break;
                     case "uae":
                         dns1 = `94.200.${rand(0, 255)}.${rand(0, 255)}`;
                         dns2 = `91.74.${rand(0, 255)}.${rand(0, 255)}`;
                         break;
                     case "random":
-                        dns1 = `1.1.1.1`;
-                        dns2 = `8.8.4.4`;
+                        dns1 = `1.1.1.1`;  
+                        dns2 = `8.8.4.4`;  
                         break;
                 }
             }
         } else {
-            dns1 = `${randHex(4)}:${randHex(4)}::${randHex(4)}:${rand(1000, 3000)}`;
-            dns2 = `${randHex(4)}:${randHex(4)}::${randHex(4)}:${rand(1000, 3000)}`;
+            dns1 = `2001:db8::${randHex(4)}:${rand(1000, 3000)}`;
+            dns2 = `2001:db8::${randHex(4)}:${rand(1000, 3000)}`;
         }
 
         document.getElementById('dns1Text').value = dns1;
@@ -189,8 +172,12 @@
         document.getElementById('dnsOutput').style.display = 'block';
     }
 
-    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-    function randHex(length) { return Array.from({ length }, () => "abcdef0123456789"[Math.floor(Math.random() * 16)]).join(''); }
+    function copyToClipboard(id) {
+        const text = document.getElementById(id).value;
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification(`DNS کپی شد!`);
+        });
+    }
 
     function showNotification(message) {
         const notification = document.getElementById('notification');
@@ -198,6 +185,9 @@
         notification.style.display = 'block';
         setTimeout(() => { notification.style.display = 'none'; }, 3000);
     }
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randHex(length) { return Array.from({ length }, () => "abcdef0123456789"[Math.floor(Math.random() * 16)]).join(''); }
 </script>
 
 </body>
