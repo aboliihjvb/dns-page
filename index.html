@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ساخت DNS - ABOLI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffcc;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: rgba(10, 10, 10, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 25px #00ffcc;
+        }
+        h2 {
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffcc;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: 0.3s;
+            background: linear-gradient(90deg, #00ffcc, #0055ff);
+            color: black;
+            font-weight: bold;
+        }
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .dns-output {
+            display: none;
+            margin-top: 20px;
+            background: rgba(0, 255, 204, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .dns-output input {
+            width: 100%;
+            background: #002244;
+            color: #00ffcc;
+            border: none;
+            padding: 12px;
+            text-align: center;
+            font-size: 1.2em;
+            border-radius: 5px;
+        }
+        .copy-btn {
+            width: 100%;
+            margin-top: 5px;
+            background: #0055ff;
+            color: white;
+            border-radius: 8px;
+        }
+        .copy-btn:hover {
+            background: #00ffcc;
+            color: black;
+        }
+        .notification {
+            background: #00ffcc;
+            color: black;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ساخت کد DNS - ABOLI</h2>
+
+    <label for="generation">نسخه IP:</label>
+    <select id="generation">
+        <option value="ipv4">IPv4</option>
+        <option value="ipv6">IPv6</option>
+    </select>
+
+    <label for="country">کشور:</label>
+    <select id="country">
+        <option value="random">🔀 تصادفی</option>
+        <option value="iran">🇮🇷 ایران</option>
+        <option value="germany">🇩🇪 آلمان</option>
+        <option value="uae">🇦🇪 امارات</option>
+    </select>
+
+    <button id="generateBtn">ساخت DNS عادی</button>
+    <button id="generateBadBtn" style="background: #ff4444;">ساخت DNS تخریبی</button>
+
+    <div class="dns-output" id="dnsOutput">
+        <h3>DNS شما:</h3>
+        <input type="text" id="dns1Text" readonly />
+        <button class="copy-btn" data-dns="dns1Text">کپی DNS 1</button>
+        
+        <input type="text" id="dns2Text" readonly />
+        <button class="copy-btn" data-dns="dns2Text">کپی DNS 2</button>
+    </div>
+
+    <div class="notification" id="notification"></div>
+</div>
+
+<script>
+    document.getElementById('generateBtn').addEventListener('click', function () {
+        generateDNS(false);
+    });
+
+    document.getElementById('generateBadBtn').addEventListener('click', function () {
+        generateDNS(true);
+    });
+
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const dnsField = document.getElementById(this.dataset.dns);
+            dnsField.select();
+            document.execCommand("copy");
+            showNotification(`${this.innerText} کپی شد!`);
+        });
+    });
+
+    function generateDNS(isBad) {
+        const generation = document.getElementById('generation').value;
+        const country = document.getElementById('country').value;
+
+        let dns1, dns2;
+
+        if (generation === 'ipv4') {
+            if (isBad) {
+                dns1 = `203.0.${rand(200, 255)}.${rand(150, 255)}`;
+                dns2 = `198.51.${rand(200, 255)}.${rand(150, 255)}`;
+            } else {
+                switch (country) {
+                    case "iran":
+                        dns1 = `178.22.122.${rand(1, 255)}`;
+                        dns2 = `185.51.200.${rand(1, 255)}`;
+                        break;
+                    case "germany":
+                        dns1 = `8.8.8.8`;  // Google DNS
+                        dns2 = `9.9.9.9`;  // Quad9 DNS
+                        break;
+                    case "uae":
+                        dns1 = `94.200.${rand(0, 255)}.${rand(0, 255)}`;
+                        dns2 = `91.74.${rand(0, 255)}.${rand(0, 255)}`;
+                        break;
+                    case "random":
+                        dns1 = `1.1.1.1`;  // Cloudflare
+                        dns2 = `8.8.4.4`;  // Google
+                        break;
+                }
+            }
+        } else {
+            dns1 = `2001:db8::${randHex(4)}:${rand(1000, 3000)}`;
+            dns2 = `2001:db8::${randHex(4)}:${rand(1000, 3000)}`;
+        }
+
+        document.getElementById('dns1Text').value = dns1;
+        document.getElementById('dns2Text').value = dns2;
+        document.getElementById('dnsOutput').style.display = 'block';
+    }
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randHex(length) { return Array.from({ length }, () => "abcdef0123456789"[Math.floor(Math.random() * 16)]).join(''); }
+
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.display = 'block';
+        setTimeout(() => { notification.style.display = 'none'; }, 3000);
+    }
+</script>
+
+</body>
+</html>
